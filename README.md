@@ -1,10 +1,10 @@
 # Project Title
 
-Write a 1-2 sentences that quickly and clearly convey what your repo is for.
+This project explores how physical attributes like height and weight relate to NBA draft outcomes.
 
 ## Overview
 
-Expand on those introductory sentences with a brief but informative description of your project's purpose and goals. This section should help visitors decide whether they should dig deeper into your repo/project.
+We analyze draft and player profile data to uncover patterns in physical traits and draft position. Using visualizations and summary statistics, we investigate how height and weight may influence when a player is selected in the draft and identify general trends across draft rounds.
 
 ### Interesting Insight
 
@@ -16,8 +16,11 @@ Use this section to explain the structure of your repo. This should help visitor
 
 ## Data Sources and Acknowledgements
 
-Be sure to list where you got any data used within the project. Be sure to acknowledge any one whose work or elements you're drawing upon.
+We got our data from google from websites such as Kaggle.com and NBA.com
+
+O’Walsh, W. (2025).Basketball Data[Data set]. Kaggle.
+NBA. (n.d.).Oﬀicial Player Stats. NBA.com.
 
 ## Authors
 
-Give information about who are the authors of the project and how people can get in touch if they have questions.
+The authors are: Tim Chen, Ying Jiang, Mohamed Alshamsi​
