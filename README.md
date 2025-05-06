@@ -24,4 +24,4 @@ NBA. (n.d.).Oﬀicial Player Stats. NBA.com.
 
 ## Authors
 
-The authors are: Tim Chen, Ying Jiang, Mohammed Alshamsi​
+The authors are: Tim Chen, Ying Jiang, Mohammed Alshamsi
