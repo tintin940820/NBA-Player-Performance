@@ -1,0 +1,266 @@
+---
+title: "NBA Player Performance"
+author: "Tim Chen, Ying Jiang, Mohammed Alshamsi"
+date: "April 28, 2025"
+format:
+  pdf:
+    toc: true
+    number_sections: true
+---
+
+# 1 Introduction
+
+We’re exploring the relationship between physical characteristics (height, weight) and draft outcomes in the NBA.
+
+\
+**Research questions**:\
+- What’s the distribution of height and weight among drafted players?
+
+\- How do physical attributes relate to draft pick or round?
+
+\- Any general patterns in the dataset?
+
+# 1.1 Analysis and Coding Paradigms
+
+We used an exploratory data analysis approach to investigate trends and patterns without testing specific hypotheses. This approach fits our goal of understanding how physical characteristics relate to draft outcomes. For coding, we used the Tidyverse framework, including `dplyr`, `ggplot2`, `tidyr`, and `readr`. These tools support a clean and consistent workflow that made it easier to wrangle data and produce visual summaries.
+
+## 1.2 PCIP Reflection
+
+**Plan:** We planned to investigate how height and weight relate to NBA draft outcomes. Our approach included merging two datasets, cleaning them, and using visual summaries and descriptive statistics to explore trends.
+
+**Code:** We used Tidyverse tools like `dplyr`, `ggplot2`, `readr`, and `tidyr` for data wrangling, plotting, and summarizing.
+
+**Improve:** We adjusted bin widths, fixed axis labels, and made the visuals easier to interpret. We also replaced raw tables with formatted outputs using `kable()`.
+
+**Polish:** The final report includes clear section headers, consistent formatting, and supporting text under each graph to help readers understand the findings.
+
+# 2 Data Source
+
+Data come from Wyatt O’Walsh’s Kaggle repo (https://www.kaggle.com/datasets/wyattowalsh/basketball/data), originally collected by the NBA. Cases = individual players; variables = physical stats and draft history.
+
+Each row in the dataset represents an individual NBA player. The dataset includes physical characteristics such as height, weight, and BMI, as well as draft information like round, pick number, and season experience. These variables allow us to explore how player attributes relate to draft outcomes.
+
+## 2.1 FAIR
+
+-   Findable: The dataset is indexed on Kaggle and includes detailed metadata.
+-   Accessible: It is downloadable with a Kaggle account, which may limit full accessibility.
+-   Interoperable: The data is provided in CSV format, which is compatible with most tools.
+-   Reusable: It has a CC BY 4.0 license, allowing for redistribution and reuse with attribution.
+
+While the data meets the FAIR principles on a surface level, there are minor limitations. For example, requiring a Kaggle account adds a layer of friction to access. Additionally, some metadata (such as data collection methodology) could be more detailed to improve reusability.
+
+## 2.2 CARE
+
+-   Collective Benefit: The dataset is shared publicly and intended for analytical use.
+-   Authority to Control: The dataset was uploaded by a Kaggle user, with no evidence of broader community governance.
+-   Responsibility: The source appears ethically collected, but the original collection process is not documented.
+-   Ethics: Since the dataset contains public sports statistics, there are minimal privacy concerns.
+
+Although there are no direct ethical violations, the dataset's alignment with CARE is limited. It lacks mechanisms for affected communities (e.g., players) to engage with or influence how the data is used. The absence of collection details also makes it harder to fully assess responsibility.
+
+# 3 Setup & Data Cleaning
+
+```{r setup, message=FALSE, warning=FALSE}
+# Load necessary libraries and import NBA player and draft data
+library(dplyr)
+library(janitor)
+library(ggplot2)
+library(tidyr)
+library(readr)
+library(stringr)
+
+# Read Data
+player_info <- read_csv("https://raw.githubusercontent.com/jiangyeee0/STAT-184-/main/common_player_info.csv")
+draft_history <- read_csv("https://raw.githubusercontent.com/jiangyeee0/STAT-184-/main/draft_history.csv")
+
+# Clean player data: extract height, weight, calculate BMI, and handle missing values
+player_clean <- player_info %>%
+  mutate(
+    feet = as.numeric(str_extract(height, "^[0-9]+")),  
+    inches = as.numeric(str_extract(height, "(?<=-)[0-9]+")), 
+    height_in = feet * 12 + replace_na(inches, 0),  
+    weight = as.numeric(str_extract(weight, "[0-9]+")),
+    bmi = (703 * weight) / (height_in^2),
+    # Replace missing height and weight values with the median to preserve data while avoiding outliers
+    across(c(height_in, weight), ~replace_na(., median(., na.rm = TRUE))))
+
+# Clean Draft History
+draft_clean <- draft_history %>%
+  mutate(across(c(overall_pick, round_number, round_pick), as.numeric))
+
+# Merge two databases
+nba_data <- inner_join(
+  player_clean, 
+  draft_clean, 
+  by = "person_id"
+)
+
+```
+
+# 4 Exploratory Data Analysis
+
+## 4.1 Glimpse of Data
+
+```{r glimpse-data}
+# Preview the structure of the merged NBA dataset
+glimpse(nba_data)
+```
+
+## 4.2 Summary of Numeric Variables
+
+```{r num-summary}
+# Summarize numeric variables (mean, median, sd, min, max, missing values)
+num_summary <- nba_data %>%
+  select(bmi, height_in, weight, season_exp, round_number, 
+         round_pick, draft_type, player_profile_flag, overall_pick) %>%
+  select(where(is.numeric)) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "value") %>%
+  group_by(variable) %>%
+  summarise(
+    mean = mean(value, na.rm = TRUE),
+    median = median(value, na.rm = TRUE),
+    sd = sd(value, na.rm = TRUE),
+    min = min(value, na.rm = TRUE),
+    max = max(value, na.rm = TRUE),
+    n_missing = sum(is.na(value)),
+    .groups = 'drop'
+  )
+
+knitr::kable(num_summary, caption = "Descriptive statistics of numeric variables")
+```
+
+# 5 Graphs
+
+## 5.1 Height Distribution
+
+```{r height-dist}
+# Plot histogram of player heights
+ggplot(nba_data, aes(x = height_in)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(
+    title = "Height Distribution of NBA Drafted Players",
+    x = "Height (inches)",
+    y = "Count"
+  )
+
+```
+
+Figure shows that most players are between 75 and 82 inches tall.
+
+## 5.2 Weight Distribution
+
+```{r weight-dist}
+# Plot histogram of player weights
+ggplot(nba_data, aes(x = weight)) +
+  geom_histogram(binwidth = 10, fill = "orange", color = "black") +
+  labs(
+    title = "Weight Distribution of NBA Drafted Players",
+    x = "Weight (lbs)",
+    y = "Count"
+  )
+```
+
+Most players weigh between 190 and 240 pounds.
+
+## 5.3 Draft Round vs Height
+
+```{r round-height}
+# Plot boxplot of height by draft round
+nba_data %>%
+  ggplot(aes(x = factor(round_number), y = height_in)) +
+  geom_boxplot() +
+  labs(
+    title = "Height by Draft Round",
+    x = "Draft Round",
+    y = "Height (inches)"
+  )
+```
+
+Round 1 players are generally taller.
+
+## 5.4 Draft Round vs Weight
+
+```{r round-weight}
+# Plot boxplot of weight by draft round
+nba_data %>%
+  ggplot(aes(x = factor(round_number), y = weight)) +
+  geom_boxplot() +
+  labs(
+    title = "Weight by Draft Round",
+    x = "Draft Round",
+    y = "Weight (lbs)"
+  )
+```
+
+Round 1 players weigh more on average.
+
+## 5.5 Height and Weight by Draft Round
+
+```{r round-height weight}
+# Plot scatter of height vs. weight colored by BMI
+round_summary <- nba_data %>%
+  group_by(round_number) %>%
+  summarise(
+    Avg_Height = mean(height_in, na.rm = TRUE),
+    Median_Height = median(height_in, na.rm = TRUE),
+    Avg_Weight = mean(weight, na.rm = TRUE),
+    Median_Weight = median(weight, na.rm = TRUE),
+    n_players = n(),
+    .groups = 'drop'
+  ) %>%
+  mutate(round_number = paste("Round", round_number))  
+knitr::kable(round_summary, caption = "Height and weight by draft round")
+```
+
+Regarding "Round 0" in NBA graphs/tables: The dataset used 0 to represent undrafted players.
+
+Table shows that Round 1 players are generally the tallest and heaviest group.
+
+## 5.6 Height and Weight Distribution (color = BMI)
+
+```{r bmi-height weight}
+ggplot(nba_data, aes(x = height_in, y = weight)) +
+  geom_point(aes(color = bmi), alpha = 0.5) +
+  scale_color_gradientn(
+    name = "BMI",
+    colors = c("blue", "green", "yellow", "red"), 
+    breaks = c(20, 25, 30) 
+  ) +
+  labs(
+    title = "NBA players height and weight distribution (color = BMI)",
+    x = "Height (inches)",
+    y = "Weight (lbs)"
+  )
+```
+
+Scatter plot shows player height vs. weight, with color indicating BMI. Higher BMI players appear in red.
+
+# 
+
+# 6 Narrative Summary
+
+Figure 5.1 shows that most players are between 75 and 82 inches tall. This suggests a concentration around average professional basketball height. Figure 5.2 shows a similar concentration in weight, mostly between 190 and 240 pounds.
+
+Figures 5.3 and 5.4 compare height and weight across draft rounds. Players selected in Round 1 tend to be taller and heavier than those drafted later, which may reflect team preferences for physical advantages early in the draft.
+
+Table 1 summarizes key statistics, confirming that most values are tightly clustered around typical NBA physical profiles. Table 5.5 reinforces the earlier finding by showing Round 1 players have the highest average height and weight.
+
+Figure 5.6 adds a BMI layer. While most players fall in the expected athletic range, outliers on the higher end may suggest different play styles or positions (e.g., centers).
+
+Taken together, these visualizations suggest that while physical attributes don’t determine draft outcomes alone, they clearly play a role, especially in earlier rounds.
+
+# 7 Conclusion
+
+Draft outcomes show slight tendencies towards specific physical profiles, though clear gaps remain between players selected in different rounds.
+
+Using R allowed us to efficiently explore patterns in the data and communicate our findings through clear summaries and visualizations.
+
+# 8 Code Appendix
+
+```{r codeAppend, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
+
+# 9 References
+
+-   O’Walsh, W. (2025). *Basketball Data* \[Data set\]. Kaggle.
+-   NBA. (n.d.). *Official Player Stats*. NBA.com.
