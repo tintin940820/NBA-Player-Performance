@@ -25,3 +25,16 @@ NBA. (n.d.).Oﬀicial Player Stats. NBA.com.
 ## Authors
 
 The authors are: Tim Chen, Ying Jiang, Mohammed Alshamsi
+
+## Open Science Reflection
+
+This project follows the principles of Open Science in several ways:
+
+- **Transparency and Reproducibility**: All data, code, and results are included in this public GitHub repository. Our `.qmd` file documents each step from import to visualization so others can reproduce the analysis.
+- **Equality of Opportunity**: The project uses publicly available data, and all tools used (R, Quarto) are open-source and accessible to anyone.
+- **Responsibility and Accountability**: All analysis is based on official public data sources, and each team member contributed equally to ensure fair and ethical reporting.
+- **Collaboration and Inclusion**: The work was completed collaboratively by all three authors. We used GitHub and group meetings to coordinate our work and ensure everyone's contributions were valued.
+- **Flexibility**: We approached the analysis iteratively, improving our code and visuals based on feedback and exploration. Our structure supports others adapting the project for related research.
+- **Sustainability**: We used reproducible workflows and organized our files so future users or teammates can build on this work without starting from scratch.
+
+
